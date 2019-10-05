@@ -14,15 +14,17 @@ class world:
     period = 100
 
 # generations, 50 in the paper
-    genes = 3
+    genes = 40
 # 40 in the paper
     λ = 0.22
-    a = 2.3
+    a = 1
     d = 0.25
 # a, d = parameters
     η = np.random.normal(0,0.5)
     epsilon = η / d
 # λ = supply parameter, η = demand shock
+
+
 
 class prob:
 #    p_sampled = Ei/sum(Ej) , probability to be sampled from old population
@@ -32,6 +34,14 @@ class prob:
     election = 0.05
 
 class GA:
+    α = 10 * sum(([world.a * 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(0, int(world.genes / 2))]))
+    print(α)
+    # mother, a included in the set [0,1], the bits at position j(j=1...40) of chromosome i at time t
+
+    β = -2 + 4 * sum(([world.a * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
+    print(β)
+    # father
+
     def string(length):        
         strings = []
     
@@ -146,6 +156,9 @@ class schedule:
     def price0():
         # hommes and lux cite this as the experimental price
         return 5.57
+    def price_equilibrium():
+        # seems reasonable actually
+        price = GA.α+GA.β*(schedule.price()-GA.α)
 
 # main simulation code
 def simulation():
