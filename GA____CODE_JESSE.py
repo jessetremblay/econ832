@@ -9,9 +9,10 @@ class housekeeping:
 #class world: this will be our environment space where we define different variables
 
 class world:
-    pool = 1
+    pool = 20
 # number of firms, 6? in the paper
-    period = 5
+    period = 100
+
 # generations, 50 in the paper
     genes = 3
 # 40 in the paper
@@ -20,14 +21,14 @@ class world:
     d = 0.25
 # a, d = parameters
     η = np.random.normal(0,0.5)
-    epsilon  = η / d
+    epsilon = η / d
 # λ = supply parameter, η = demand shock
 
 class prob:
 #    p_sampled = Ei/sum(Ej) , probability to be sampled from old population
     p_cross = 0.6
     p_unchanged = 1 - p_cross
-    p_mut = 0.025
+    p_mut = 0.15
     election = 0.05
 
 class GA:
@@ -36,8 +37,11 @@ class GA:
     
         while len(strings) < length:
             strings.append(random.randint(0,1))
-# in holmes and lux they defined the first half of the string as α = 
-# in holmes and lux they defined the second half of the string as β =             
+# in holmes and lux they defined the first half of the string (mother) as α =
+# in holmes and lux they defined the second half of the string (father) as β =
+# these are defined on page 12 of the paper and they are the link between strings and the market
+ # its very important to code them correctly
+
         return strings
 
     firm = []
@@ -48,17 +52,34 @@ class GA:
             GA.firm.append(firms)
         return GA.firm
 
-    def fitness(profit):
-        return profit
+    def fitness():
+        try:
+            fit = -1 * minimize(1300 - 260 * (schedule.price() - schedule.price0()) ** 2, 0)
+        except:
+            fit = 1
+            # temporary error catcher while this is debugged
+        return fit
 # placeholder function as part of my pseudocode, will update later
-    def reproduction():
-        pass
+   # def reproduction():
+        # GA.fitness() / sumj/fitj
+
+
 
     def crossover():
-        pass
+        # not yet worked on
+        offspring = []
+        for i in GA.firm:
+            chance = random.uniform(0,1)
+            # not sure if this is the optimal random function to use
+            print(chance)
+            if chance < prob.p_cross:
+                print("Crossover will occur")
+            else:
+                print("Crossover will not occur")
+
 
     def mutation():
-        # mutation working properly
+        # mutation working properly, try to improve benchmarks and make it more pythonic
         mutated_firms = []
         for i in GA.firm:
             temp_firm = []
@@ -81,24 +102,35 @@ class GA:
         return GA.firm
 
     def election():
+        # work on this last
         pass
 # placeholder function as part of my pseudocode, will update later
 # this will rely on the string function of the parent to create a mutation
 
 
 class schedule:
-    # def cobweb():
-    #     E = -1*minimize(1300-260*(schedule.price()-schedule.price0())**2,)
-    #     return E
-    # needs heavy debugging
-# the demand schedule, prices, etc
+    def cobweb():
+        #cobweb needs debugging
+        E = -1*minimize(1300-260*(schedule.price()-schedule.price0())**2,0)
+        return E
+
+
     def supply():
-        supply_schedule = np.tanh(world.λ*(schedule.price()-6))+1
+        #appears to be working as intended
+        try:
+            supply_schedule = np.tanh(world.λ * (schedule.price() - 6)) + 1
+        except:
+            supply_schedule = np.tanh(world.λ*(schedule.price0()-6))+1
         return supply_schedule
     def demand():
-        demand = world.a-world.d*(schedule.price())+world.η
+        #appears to be working as intended
+        try:
+            demand = world.a-world.d*(schedule.price())+world.η
+        except:
+            demand = world.a-world.d*(schedule.price0())+world.η
         return demand
     def equilibrium():
+        #needs to be tested to see if its working
         summation = []
         for i in range(0, world.pool):
             summation.append((schedule.supply()))
@@ -108,19 +140,24 @@ class schedule:
         equilibrium_star = (1 / world.pool)*total
         return equilibrium_star
     def price():
-# recursion depth error, need to program for different periods so that price is given by price in last period
-#        price = (world.a - (1/world.pool)*schedule.supply()) / world.d +  epsilon
-        return 3
+        # working as intended
+        price = (world.a - (1/world.pool)*schedule.supply()) / world.d + world.epsilon
+        return price
     def price0():
-        # what is price0?
-        return 2
+        # hommes and lux cite this as the experimental price
+        return 5.57
+
+# main simulation code
+def simulation():
+    for i in range(world.period):
+
+        GA.reproduction()
+#     GA.crossover()
+        GA.mutation()
+#     GA.election()
+        print(i, schedule.price())
+        # this is here for testing purposes
 
 #
-# def simulation():
-#     GA.reproduction()
-#     GA.crossover()
-#     GA.mutation()
-#     GA.election()
-#
-#     results = schedule.price()
-#     return results
+    results = schedule.price()
+    return results
