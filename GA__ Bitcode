@@ -1,0 +1,18 @@
+# this needs to be error checked but the code is mostly working as I intended it
+
+class bitcode:
+    def generate_bitcode():
+        αit = 0
+        for i in GA.firm:
+            temp_firm = i
+            alphai = 10 * sum(([temp_firm[j] * 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
+            αit += alphai
+        return (αit)
+    # mother should be between [0,10] a included in the set [0,1], the bits at position j(j=1...40) of chromosome i at time t
+        βit = 0
+        for i in GA.firm:
+            temp_firm = i
+            betai = -2 + 4 * sum(([temp_firm[j] * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
+            βit += betai
+        return (βit)
+    # father, should be between [-2,2]
