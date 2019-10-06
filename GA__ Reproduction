@@ -1,0 +1,3 @@
+# Needs to be coded
+# Takes two random string halves (one left string, the father and one right string, the mother) and checks their fitness
+# If fitness > threshold, adds them to firm pool
