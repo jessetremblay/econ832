@@ -1,0 +1,77 @@
+# I highly recommend coding these things seperately but I wanted to add this class seperately for cleanliness
+# string, firm_gen and mutation are completed
+
+class GA:
+    firm = []
+
+    def string(length):
+        strings = []
+        while len(strings) < length:
+            strings.append(random.randint(0, 1))
+        return strings
+
+    def firm_gen(pool, genes):
+        while len(GA.firm) < pool:
+            firms = GA.string(genes)
+            GA.firm.append(firms)
+        return GA.firm
+
+    def mutation(mutation_probability):
+        mutated_firms = []
+        for i in GA.firm:
+            temp_firm = []
+            for x in i:
+                chance = random.uniform(0, 1)
+                if chance > mutation_probability:
+                    temp_firm.append(x)
+                elif chance < mutation_probability and x == 0:
+                    x = 1
+                    temp_firm.append(x)
+                elif chance < mutation_probability and x == 1:
+                    x = 0
+                    temp_firm.append(x)
+            mutated_firms.append(temp_firm)
+        GA.firm = mutated_firms
+        return GA.firm
+        
+        
+        
+
+    def fitness():
+        accuracy = (1300 - 260 * (schedule.price() - schedule.price_star()) ** 2)
+        fit = 0
+        if accuracy > 0:
+            fit = accuracy
+        else:
+            fit == 0
+        return fit
+
+
+# placeholder function as part of my pseudocode, will update later
+    def reproduction():
+        sum_fitness = 1
+        reproduction_operator = [1]
+        for i in GA.firm:
+            try:
+                sum_fitness += GA.fitness()
+                reproduction_operator[0] = GA.fitness() / sum_fitness
+            except ZeroDivisionError:
+                pass
+        print(reproduction_operator)
+        return reproduction_operator
+
+    def crossover():
+        # not yet worked on
+        offspring = []
+        for i in GA.firm:
+            chance = random.uniform(0,1)
+            # not sure if this is the optimal random function to use
+            print(chance)
+            if chance < prob.p_cross:
+                print("Crossover will occur")
+            else:
+                print("Crossover will not occur")
+
+    def election():
+        # work on this last
+        pass
