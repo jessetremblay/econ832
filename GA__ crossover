@@ -1,0 +1,11 @@
+# I just did a rough sketch of when crossover will occur but the function itself needs heavy work including actually making crossover happen
+
+def crossover(crossover_probability):
+  offspring = []
+  for i in GA.firm:
+    chance = random.uniform(0,1)
+    print(chance)
+    if chance < crossover_probability:
+      print("Crossover will occur")
+    else:
+      print("Crossover will not occur")
