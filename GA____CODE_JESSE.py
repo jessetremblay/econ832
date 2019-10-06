@@ -9,17 +9,17 @@ class housekeeping:
 #class world: this will be our environment space where we define different variables
 
 class world:
-    pool = 20
+    pool = 1
 # number of firms, 6? in the paper
-    period = 100
-
+    period = 200
 # generations, 50 in the paper
     genes = 40
 # 40 in the paper
     λ = 0.22
-    a = 1
+
+    a = 2.3
     d = 0.25
-# a, d = parameters
+# a, d = parameters that remain the same throughout paper
     η = np.random.normal(0,0.5)
     epsilon = η / d
 # λ = supply parameter, η = demand shock
@@ -30,17 +30,13 @@ class prob:
 #    p_sampled = Ei/sum(Ej) , probability to be sampled from old population
     p_cross = 0.6
     p_unchanged = 1 - p_cross
-    p_mut = 0.15
+    p_mut = 0.025
     election = 0.05
 
-class GA:
-    α = 10 * sum(([world.a * 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(0, int(world.genes / 2))]))
-    print(α)
-    # mother, a included in the set [0,1], the bits at position j(j=1...40) of chromosome i at time t
 
-    β = -2 + 4 * sum(([world.a * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
-    print(β)
-    # father
+class GA:
+
+    firm = []
 
     def string(length):        
         strings = []
@@ -54,7 +50,6 @@ class GA:
 
         return strings
 
-    firm = []
 
     def firm_gen():
         while len(GA.firm) < world.pool:
@@ -114,7 +109,7 @@ class GA:
     def election():
         # work on this last
         pass
-# placeholder function as part of my pseudocode, will update later
+
 # this will rely on the string function of the parent to create a mutation
 
 
@@ -128,7 +123,7 @@ class schedule:
     def supply():
         #appears to be working as intended
         try:
-            supply_schedule = np.tanh(world.λ * (schedule.price() - 6)) + 1
+            supply_schedule = np.tanh(world.λ * (schedule.price_estimate() - 6)) + 1
         except:
             supply_schedule = np.tanh(world.λ*(schedule.price0()-6))+1
         return supply_schedule
@@ -156,15 +151,39 @@ class schedule:
     def price0():
         # hommes and lux cite this as the experimental price
         return 5.57
-    def price_equilibrium():
-        # seems reasonable actually
-        price = GA.α+GA.β*(schedule.price()-GA.α)
+    def price_estimate():
+        # p^e(i,t+1)
+        price_est = bitcode.generate_bitcode()+bitcode.generate_bitcode()*(schedule.price()-bitcode.generate_bitcode())
+        return price_est
 
+class bitcode:
+    # 11.5 @ a = 2.3? should be between 0,10.
+    # Maybe a != a^j(i,t). What is it then?
+    def generate_bitcode():
+        αit = 0
+        for i in GA.firm:
+            temp_firm = i
+            alphai = 10 * sum(([temp_firm[j] * 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
+            αit += alphai
+        return (αit)
+    # mother, a included in the set [0,1], the bits at position j(j=1...40) of chromosome i at time t
+    # 2.59 @ a = 2.3? should be between -2,2
+        βit = 0
+        for i in GA.firm:
+            temp_firm = i
+            betai = -2 + 4 * sum(([temp_firm[j] * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
+            βit += betai
+        return (βit)
+    # father
+    αi = 3  # placeholder values while i figure out the equation
+    βi = 1  # placeholder values while i figure out the equation
 # main simulation code
 def simulation():
-    for i in range(world.period):
+    GA.firm_gen()
+    bitcode.generate_bitcode()
 
-        GA.reproduction()
+    for i in range(world.period):
+#    GA.reproduction()
 #     GA.crossover()
         GA.mutation()
 #     GA.election()
@@ -172,5 +191,5 @@ def simulation():
         # this is here for testing purposes
 
 #
-    results = schedule.price()
+    results = print("The price is", schedule.price() ,"and the equilibrium is ", schedule.equilibrium())
     return results
