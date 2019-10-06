@@ -187,9 +187,11 @@ def simulation():
 #     GA.crossover()
         GA.mutation()
 #     GA.election()
-        print(i, schedule.price())
+         if i % 5 ==0:
+            print(i, schedule.price())
         # this is here for testing purposes
 
 #
     results = print("The price is", schedule.price() ,"and the equilibrium is ", schedule.equilibrium())
+    # i have no idea if this is even the equilibrium
     return results
