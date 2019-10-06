@@ -1,0 +1,17 @@
+
+def simulation():
+    GA.firm_gen(1, 40)
+    bitcode.generate_bitcode()
+    
+    for i in range(world.period):
+#  world.period will eventually be changed to an int
+#       GA.reproduction()
+#       GA.crossover()
+        GA.mutation(0.025)
+#       GA.election()
+        if i % 5 ==0:
+            print(i, schedule.price())
+# this is here for testing purposes
+
+    results = print("The price is", schedule.price())
+    return results
