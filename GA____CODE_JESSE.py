@@ -5,70 +5,84 @@ from scipy.optimize import minimize
 class housekeeping:
     random.seed()
 
-
-#class world: this will be our environment space where we define different variables
-
 class world:
     pool = 1
-# number of firms, 6? in the paper
     period = 200
-# generations, 50 in the paper
     genes = 40
-# 40 in the paper
-    λ = 0.22
+# these three may be possible to phase out eventually
 
+    λ = 0.22
     a = 2.3
     d = 0.25
-# a, d = parameters that remain the same throughout paper
     η = np.random.normal(0,0.5)
     epsilon = η / d
+
+# a, d = parameters that remain the same throughout paper;
+# however, it may be nice to keep them in a class of their own just for flexibility's sake
 # λ = supply parameter, η = demand shock
-
-
 
 class prob:
 #    p_sampled = Ei/sum(Ej) , probability to be sampled from old population
     p_cross = 0.6
     p_unchanged = 1 - p_cross
-    p_mut = 0.025
     election = 0.05
-
+# this entire class will be phased out eventually
 
 class GA:
-
     firm = []
 
-    def string(length):        
+    def string(length):
         strings = []
-    
         while len(strings) < length:
-            strings.append(random.randint(0,1))
-# in holmes and lux they defined the first half of the string (mother) as α =
-# in holmes and lux they defined the second half of the string (father) as β =
-# these are defined on page 12 of the paper and they are the link between strings and the market
- # its very important to code them correctly
-
+            strings.append(random.randint(0, 1))
         return strings
 
-
-    def firm_gen():
-        while len(GA.firm) < world.pool:
-            firms = GA.string(world.genes)
+    def firm_gen(pool, genes):
+        while len(GA.firm) < pool:
+            firms = GA.string(genes)
             GA.firm.append(firms)
         return GA.firm
 
+    def mutation(mutation_probability):
+        mutated_firms = []
+        for i in GA.firm:
+            temp_firm = []
+            for x in i:
+                chance = random.uniform(0, 1)
+                if chance > mutation_probability:
+                    temp_firm.append(x)
+                elif chance < mutation_probability and x == 0:
+                    x = 1
+                    temp_firm.append(x)
+                elif chance < mutation_probability and x == 1:
+                    x = 0
+                    temp_firm.append(x)
+            mutated_firms.append(temp_firm)
+        GA.firm = mutated_firms
+        return GA.firm
+
     def fitness():
-        try:
-            fit = -1 * minimize(1300 - 260 * (schedule.price() - schedule.price0()) ** 2, 0)
-        except:
-            fit = 1
-            # temporary error catcher while this is debugged
+        accuracy = (1300 - 260 * (schedule.price() - schedule.price_star()) ** 2)
+        fit = 0
+        if accuracy > 0:
+            fit = accuracy
+        else:
+            fit == 0
         return fit
+
+            # temporary error catcher while this is debugged
 # placeholder function as part of my pseudocode, will update later
-   # def reproduction():
-        # GA.fitness() / sumj/fitj
-
-
+    def reproduction():
+        sum_fitness = 1
+        reproduction_operator = [1]
+        for i in GA.firm:
+            try:
+                sum_fitness += GA.fitness()
+                reproduction_operator[0] = GA.fitness() / sum_fitness
+            except ZeroDivisionError:
+                pass
+        print(reproduction_operator)
+        return reproduction_operator
 
     def crossover():
         # not yet worked on
@@ -82,43 +96,16 @@ class GA:
             else:
                 print("Crossover will not occur")
 
-
-    def mutation():
-        # mutation working properly, try to improve benchmarks and make it more pythonic
-        mutated_firms = []
-        for i in GA.firm:
-            temp_firm = []
-            for x in i:
-                chance = random.uniform(0,1)
-                if x == 0:
-                    if chance < prob.p_mut:
-                        x = 1
-                        temp_firm.append(x)
-                    else:
-                        temp_firm.append(x)
-                elif x == 1:
-                    if chance < prob.p_mut:
-                        x = 0
-                        temp_firm.append(x)
-                    else:
-                        temp_firm.append(x)
-            mutated_firms.append(temp_firm)
-        GA.firm = mutated_firms
-        return GA.firm
-
     def election():
         # work on this last
         pass
 
 # this will rely on the string function of the parent to create a mutation
-
-
 class schedule:
     def cobweb():
         #cobweb needs debugging
         E = -1*minimize(1300-260*(schedule.price()-schedule.price0())**2,0)
         return E
-
 
     def supply():
         #appears to be working as intended
@@ -151,6 +138,9 @@ class schedule:
     def price0():
         # hommes and lux cite this as the experimental price
         return 5.57
+    def price_star():
+        price_star = schedule.price()-world.epsilon
+        return price_star
     def price_estimate():
         # p^e(i,t+1)
         price_est = bitcode.generate_bitcode()+bitcode.generate_bitcode()*(schedule.price()-bitcode.generate_bitcode())
@@ -179,19 +169,17 @@ class bitcode:
     βi = 1  # placeholder values while i figure out the equation
 # main simulation code
 def simulation():
-    GA.firm_gen()
+    GA.firm_gen(1, 40)
     bitcode.generate_bitcode()
 
     for i in range(world.period):
-#    GA.reproduction()
+#       GA.reproduction()
 #     GA.crossover()
-        GA.mutation()
+        GA.mutation(0.025)
 #     GA.election()
-         if i % 5 ==0:
+        if i % 5 ==0:
             print(i, schedule.price())
         # this is here for testing purposes
 
-#
     results = print("The price is", schedule.price() ,"and the equilibrium is ", schedule.equilibrium())
-    # i have no idea if this is even the equilibrium
     return results
