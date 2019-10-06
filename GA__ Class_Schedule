@@ -1,0 +1,46 @@
+# most of these need work, some might be redundant, some might be missing
+
+class schedule:
+    def cobweb():
+        #cobweb needs debugging
+        E = -1*minimize(1300-260*(schedule.price()-schedule.price0())**2,0)
+        return E
+
+    def supply():
+        #appears to be working as intended
+        try:
+            supply_schedule = np.tanh(world.λ * (schedule.price_estimate() - 6)) + 1
+        except:
+            supply_schedule = np.tanh(world.λ*(schedule.price0()-6))+1
+        return supply_schedule
+    def demand():
+        #appears to be working as intended
+        try:
+            demand = world.a-world.d*(schedule.price())+world.η
+        except:
+            demand = world.a-world.d*(schedule.price0())+world.η
+        return demand
+    def equilibrium():
+        #needs to be tested to see if its working
+        summation = []
+        for i in range(0, world.pool):
+            summation.append((schedule.supply()))
+        total = 0
+        for i in summation:
+            total += i
+        equilibrium_star = (1 / world.pool)*total
+        return equilibrium_star
+    def price():
+        # working as intended
+        price = (world.a - (1/world.pool)*schedule.supply()) / world.d + world.epsilon
+        return price
+    def price0():
+        # hommes and lux cite this as the experimental price
+        return 5.57
+    def price_star():
+        price_star = schedule.price()-world.epsilon
+        return price_star
+    def price_estimate():
+        # p^e(i,t+1)
+        price_est = bitcode.generate_bitcode()+bitcode.generate_bitcode()*(schedule.price()-bitcode.generate_bitcode())
+        return price_est
