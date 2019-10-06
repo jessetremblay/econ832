@@ -16,7 +16,8 @@ class Benchmark:
           print("{0} {1:3.2f} {2:3.2f}".format(
               1 + i, mean,
               statistics.stdev(timings, mean)
-              if i > 1 else 0))
+              if i > 1 else 0))
+
   
 
 # finished code
@@ -60,3 +61,5 @@ def mut_bm():
     return firm
 
 Benchmark.run(mut_bm)
+
+#Extremely good benchmarks. The mutation function is finished code unless someone sees a way to condense it.
