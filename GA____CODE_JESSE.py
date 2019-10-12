@@ -1,32 +1,28 @@
 import random
 import numpy as np
-from scipy.optimize import minimize
 
 class housekeeping:
     random.seed()
 
 class world:
-    pool = 1
-    period = 200
+
+    def demand_shock():
+        η = np.random.normal(0,0.5)
+        return η
+    
+    pool = 2
+    period = 30
     genes = 40
 # these three may be possible to phase out eventually
 
     λ = 0.22
     a = 2.3
-    d = 0.25
-    η = np.random.normal(0,0.5)
-    epsilon = η / d
+    d = 0.25 
+    epsilon = demand_shock() / d
 
 # a, d = parameters that remain the same throughout paper;
 # however, it may be nice to keep them in a class of their own just for flexibility's sake
 # λ = supply parameter, η = demand shock
-
-class prob:
-#    p_sampled = Ei/sum(Ej) , probability to be sampled from old population
-    p_cross = 0.6
-    p_unchanged = 1 - p_cross
-    election = 0.05
-# this entire class will be phased out eventually
 
 class GA:
     firm = []
@@ -59,127 +55,126 @@ class GA:
                     temp_firm.append(x)
             mutated_firms.append(temp_firm)
         GA.firm = mutated_firms
+
         return GA.firm
 
+    fitness_levels = []
+
     def fitness():
-        accuracy = (1300 - 260 * (schedule.price() - schedule.price_star()) ** 2)
-        fit = 0
-        if accuracy > 0:
-            fit = accuracy
-        else:
-            fit == 0
-        return fit
-
-            # temporary error catcher while this is debugged
-# placeholder function as part of my pseudocode, will update later
-    def reproduction():
-        sum_fitness = 1
-        reproduction_operator = [1]
-        for i in GA.firm:
-            try:
-                sum_fitness += GA.fitness()
-                reproduction_operator[0] = GA.fitness() / sum_fitness
-            except ZeroDivisionError:
-                pass
-        print(reproduction_operator)
-        return reproduction_operator
-
-    def crossover():
-        # not yet worked on
-        offspring = []
-        for i in GA.firm:
-            chance = random.uniform(0,1)
-            # not sure if this is the optimal random function to use
-            print(chance)
-            if chance < prob.p_cross:
-                print("Crossover will occur")
+        for i in bitcode.price_starA:
+            accuracy = (1300 - 260 * (i - schedule.price_star()) ** 2)
+            fit = 0
+            if accuracy > 0:
+                fit = accuracy
             else:
-                print("Crossover will not occur")
+                fit == 0
+            GA.fitness_levels.append(fit)
+            return fit
 
-    def election():
-        # work on this last
-        pass
+    def sum_fitness():
+        total = 0
+        for i in GA.fitness_levels:
+            total += i
+        return total
 
-# this will rely on the string function of the parent to create a mutation
+    roulette = []
+    def check_fitness():
+        try:
+            for i in GA.fitness_levels:
+                percentage = i / GA.sum_fitness()
+                GA.roulette.append(percentage)
+        except ZeroDivisionError:
+            pass
+        return True
+
+
+    def reproduction():
+        new_firm = []
+        for i in GA.roulette:
+            x = np.array(GA.roulette)
+            selection = random.choice(range(x.size))
+            new_firm.append(GA.firm[selection])
+
+        print(new_firm)
+
+
+        return True
+
+
+
+
+
 class schedule:
-    def cobweb():
-        #cobweb needs debugging
-        E = -1*minimize(1300-260*(schedule.price()-schedule.price0())**2,0)
-        return E
+    def demand():
+        try:
+            demand = world.a-world.d*(schedule.price())+world.demand_shock()
+        except:
+            demand = world.a-world.d*(schedule.price0())+world.demand_shock()
+        return demand
 
     def supply():
-        #appears to be working as intended
         try:
-            supply_schedule = np.tanh(world.λ * (schedule.price_estimate() - 6)) + 1
+            supply_schedule = np.tanh(world.λ * (schedule.price_eit() - 6)) + 1
         except:
             supply_schedule = np.tanh(world.λ*(schedule.price0()-6))+1
         return supply_schedule
-    def demand():
-        #appears to be working as intended
-        try:
-            demand = world.a-world.d*(schedule.price())+world.η
-        except:
-            demand = world.a-world.d*(schedule.price0())+world.η
-        return demand
-    def equilibrium():
-        #needs to be tested to see if its working
-        summation = []
-        for i in range(0, world.pool):
-            summation.append((schedule.supply()))
-        total = 0
-        for i in summation:
-            total += i
-        equilibrium_star = (1 / world.pool)*total
-        return equilibrium_star
+
     def price():
-        # working as intended
         price = (world.a - (1/world.pool)*schedule.supply()) / world.d + world.epsilon
         return price
+    
     def price0():
-        # hommes and lux cite this as the experimental price
         return 5.57
+    
     def price_star():
-        price_star = schedule.price()-world.epsilon
+        price_star = (world.a - (1/world.pool)*schedule.supply()) / world.d
         return price_star
-    def price_estimate():
+    
+    def price_eit():
         # p^e(i,t+1)
-        price_est = bitcode.generate_bitcode()+bitcode.generate_bitcode()*(schedule.price()-bitcode.generate_bitcode())
-        return price_est
+        price_eit = bitcode.generate_bitcode()+bitcode.generate_bitcode2()*(schedule.price()-bitcode.generate_bitcode())
+        return price_eit
+
+
 
 class bitcode:
-    # 11.5 @ a = 2.3? should be between 0,10.
-    # Maybe a != a^j(i,t). What is it then?
+
+    price_starA = []
+    price_starB = []
+
     def generate_bitcode():
-        αit = 0
+        sum_output = 0
         for i in GA.firm:
             temp_firm = i
             alphai = 10 * sum(([temp_firm[j] * 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
-            αit += alphai
-        return (αit)
-    # mother, a included in the set [0,1], the bits at position j(j=1...40) of chromosome i at time t
-    # 2.59 @ a = 2.3? should be between -2,2
-        βit = 0
+            sum_output += alphai
+            bitcode.price_starA.append(sum_output)
+        return sum_output
+
+    def generate_bitcode2():
+        sum_output = 0
         for i in GA.firm:
             temp_firm = i
             betai = -2 + 4 * sum(([temp_firm[j] * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
-            βit += betai
-        return (βit)
-    # father
-    αi = 3  # placeholder values while i figure out the equation
-    βi = 1  # placeholder values while i figure out the equation
-# main simulation code
+            sum_output += betai
+            bitcode.price_starB.append(sum_output)
+        return sum_output
+
 def simulation():
-    GA.firm_gen(1, 40)
+    GA.firm_gen(2, 40)
     bitcode.generate_bitcode()
+    bitcode.generate_bitcode2()
+    print(GA.firm)
 
     for i in range(world.period):
-#       GA.reproduction()
+        GA.fitness()
+        GA.check_fitness()
+        GA.reproduction()
 #     GA.crossover()
         GA.mutation(0.025)
 #     GA.election()
         if i % 5 ==0:
-            print(i, schedule.price())
-        # this is here for testing purposes
+            print(i, schedule.price(), GA.fitness())
 
-    results = print("The price is", schedule.price() ,"and the equilibrium is ", schedule.equilibrium())
-    return results
+    print(GA.firm)
+    return True
