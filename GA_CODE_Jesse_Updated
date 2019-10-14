@@ -9,10 +9,8 @@ class world:
     def demand_shock():
         η = np.random.normal(0,0.5)
         return η
-    
-    pool = 6; genes = 40
 
-    λ = 0.22; a = 2.3; d = 0.25; epsilon = demand_shock() / d
+    pool = 4; genes = 40; λ = 0.22; a = 2.3; d = 0.25; epsilon = demand_shock() / d
 
 class GA:
     firm = []
@@ -60,7 +58,7 @@ class GA:
                 GA.fitness_levels.append(fit)
             elif fit < 0:
                 GA.fitness_levels.append(0)
-        return print("[",GA.fitness_levels,"]")
+        return print("Fitness levels: [",GA.fitness_levels,"]")
 
     def sum_fitness():
         total = 0
@@ -74,24 +72,49 @@ class GA:
             for i in GA.fitness_levels:
                 percentage = i / GA.sum_fitness()
                 GA.roulette.append(percentage)
-
         except ZeroDivisionError:
             pass
-        return True
+
 
     def reproduction():
         new_firm = []
         for i in GA.roulette:
             x = np.array(GA.roulette)
             selection = random.choice(range(x.size))
-            # print(selection)
+            #print(selection)
             new_firm.append(GA.firm[selection])
         GA.firm = []
         for i in new_firm:
             GA.firm.append(i)
 
+    def crossover(probability, strings):
+        X = []
+        Y = []
+        offspring = []
+       # while len(offspring) < world.pool:
+        for i in range(len(GA.firm)):
+            chance = random.uniform(0, 1)
+            print(chance)
+            if chance < probability:
+                print("Crossover")
+                X_chromosome = GA.firm[i][:int(strings/2)]
+                X.append(X_chromosome)
+                Y_chromosome = GA.firm[i][int(strings/2):]
+                Y.append(Y_chromosome)
+            else:
+                print("No crossover")
+                offspring.append(GA.firm[i])
 
-        return True
+            for i in range(len(X)):
+                choice = random.choice(X)
+                choice2 = random.choice(Y)
+
+                offspring.append(choice+choice2)
+                X.remove(choice)
+                Y.remove(choice2)
+        GA.firm = []
+        GA.firm = offspring
+        print("OFFSPRING:",*offspring,sep="\n")
 
 class schedule:
     def demand():
@@ -168,22 +191,31 @@ class bitcode:
             bitcode.price_starB.append(betai)
         return sum_output
 
+
 def simulation(period):
+    GA.firm = []
+    GA.roulette = []
+    GA.fitness_levels = []
+    bitcode.price_starA = []
+    bitcode.price_starB = []
+
     GA.firm_gen(world.pool, 40)
     bitcode.generate_bitcode()
     bitcode.generate_bitcode2()
-    print(GA.firm)
+    print("Initial Firms:",*GA.firm, sep = "\n")
+
     for i in range(period):
         schedule.price_eita()
         GA.fitness()
         GA.check_fitness()
         GA.reproduction()
-#     GA.crossover()
+        GA.crossover(0.6, world.genes)
         GA.mutation(0.0025)
 #     GA.election()
         if i % 5 ==0:
-            print(i, schedule.price(), GA.fitness())
+            print(i, GA.fitness(), schedule.price())
 
-    print(GA.firm)
+    print("Ending Firms:",*GA.firm, sep="\n")
+    print(schedule.price())
     # add some sort of summary to return
     return "Simulation finished"
