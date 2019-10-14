@@ -1,0 +1,189 @@
+import random
+import numpy as np
+
+class housekeeping:
+    random.seed()
+
+class world:
+
+    def demand_shock():
+        η = np.random.normal(0,0.5)
+        return η
+    
+    pool = 6; genes = 40
+
+    λ = 0.22; a = 2.3; d = 0.25; epsilon = demand_shock() / d
+
+class GA:
+    firm = []
+    roulette = []
+    fitness_levels = []
+
+
+    def string(length):
+        strings = []
+        while len(strings) < length:
+            strings.append(random.randint(0, 1))
+        return strings
+
+    def firm_gen(pool, genes):
+        while len(GA.firm) < pool:
+            firms = GA.string(genes)
+            GA.firm.append(firms)
+        return GA.firm
+
+    def mutation(mutation_probability):
+        mutated_firms = []
+        for i in GA.firm:
+            temp_firm = []
+            for x in i:
+                chance = random.uniform(0, 1)
+                if chance > mutation_probability:
+                    temp_firm.append(x)
+                elif chance < mutation_probability and x == 0:
+                    x = 1
+                    temp_firm.append(x)
+                   # print("Mutation occured!")
+                elif chance < mutation_probability and x == 1:
+                    x = 0
+                    temp_firm.append(x)
+                   # print("Mutation occured!")
+            mutated_firms.append(temp_firm)
+        GA.firm = mutated_firms
+        return GA.firm
+
+    def fitness():
+        GA.fitness_levels = []
+        for i in range(world.pool):
+            fit = (1300 - 260 * (schedule.individual_price_observations[i] - (schedule.price_star() / world.pool)) ** 2)
+            if fit > 0:
+                GA.fitness_levels.append(fit)
+            elif fit < 0:
+                GA.fitness_levels.append(0)
+        return print("[",GA.fitness_levels,"]")
+
+    def sum_fitness():
+        total = 0
+        for i in GA.fitness_levels:
+            total += i
+        return total
+
+    def check_fitness():
+        GA.roulette = []
+        try:
+            for i in GA.fitness_levels:
+                percentage = i / GA.sum_fitness()
+                GA.roulette.append(percentage)
+
+        except ZeroDivisionError:
+            pass
+        return True
+
+    def reproduction():
+        new_firm = []
+        for i in GA.roulette:
+            x = np.array(GA.roulette)
+            selection = random.choice(range(x.size))
+            # print(selection)
+            new_firm.append(GA.firm[selection])
+        GA.firm = []
+        for i in new_firm:
+            GA.firm.append(i)
+
+
+        return True
+
+class schedule:
+    def demand():
+        try:
+            demand = world.a-world.d*(schedule.price())+world.demand_shock()
+        except:
+            demand = world.a-world.d*(schedule.price0())+world.demand_shock()
+        return demand
+
+    def supply():
+        #summation needed
+        try:
+            supply_schedule = np.tanh(world.λ * (schedule.price_eit() - 6)) + 1
+        except:
+            supply_schedule = np.tanh(world.λ*(schedule.price0()-6))+1
+        return supply_schedule
+
+    def price():
+        price = (world.a - (1/world.pool)*schedule.supply()) / world.d + world.epsilon
+        return price
+    
+    def price0():
+        return 5.57
+    
+    def price_star():
+        price_star = (world.a - (1/world.pool)*schedule.supply()) / world.d
+        return price_star
+    
+    def price_eit():
+        # p^e(i,t+1)
+        price_eit = bitcode.generate_bitcode()+bitcode.generate_bitcode2()*(schedule.price()-bitcode.generate_bitcode())
+        return price_eit
+
+    individual_price_observations = []
+    def price_eita():
+        schedule.individual_price_observations = []
+        for i in bitcode.price_starA:
+            price_eita = i
+            schedule.individual_price_observations.append(price_eita)
+        return schedule.individual_price_observations
+
+    def price_eit_indy():
+        individual_price_observations = []
+        for i,j in zip(bitcode.price_starA,bitcode.price_starB):
+            price_eit_indy = i + j*(schedule.price()-i)
+            individual_price_observations.append(price_eit_indy)
+
+        return individual_price_observations
+
+
+
+class bitcode:
+
+    price_starA = []
+    price_starB = []
+# these lists are not working properly
+    def generate_bitcode():
+        bitcode.price_starA = []
+        sum_output = 0
+        for i in GA.firm:
+            temp_firm = i
+            alphai = 10 * sum(([temp_firm[j] * 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
+            sum_output += alphai
+            bitcode.price_starA.append(alphai)
+        return sum_output
+
+    def generate_bitcode2():
+        bitcode.price_starB = []
+        sum_output = 0
+        for i in GA.firm:
+            temp_firm = i
+            betai = -2 + 4 * sum(([temp_firm[j] * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
+            sum_output += betai
+            bitcode.price_starB.append(betai)
+        return sum_output
+
+def simulation(period):
+    GA.firm_gen(world.pool, 40)
+    bitcode.generate_bitcode()
+    bitcode.generate_bitcode2()
+    print(GA.firm)
+    for i in range(period):
+        schedule.price_eita()
+        GA.fitness()
+        GA.check_fitness()
+        GA.reproduction()
+#     GA.crossover()
+        GA.mutation(0.0025)
+#     GA.election()
+        if i % 5 ==0:
+            print(i, schedule.price(), GA.fitness())
+
+    print(GA.firm)
+    # add some sort of summary to return
+    return "Simulation finished"
