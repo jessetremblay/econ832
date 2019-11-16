@@ -1,0 +1,287 @@
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+class world:
+    def demand_shock():
+        η = np.random.normal(0, 0.5)
+        return η
+
+    def epsilon():
+        return world.demand_shock() / world.d
+
+    pool = 6;
+    genes = 40;
+    λ = 1;
+    a = 2.3;
+    d = 0.25
+
+
+class save_point:
+    firm = []
+    firm_after_crossover = []
+    firm_pre_election = []
+    fitness_firm = []
+    fitness_firm_pre_election = []
+    roulette = []
+
+
+class main:
+    def string(length):
+        strings = []
+        while len(strings) < length:
+            strings.append(random.randint(0, 1))
+        return strings
+
+    def firm_gen(pool, genes):
+        while len(save_point.firm) < pool:
+            firms = main.string(genes)
+            save_point.firm.append(firms)
+        return save_point.firm
+
+    def mutation(mutation_probability):
+        mutated_firms = []
+        for i in save_point.firm_after_crossover:
+            temp_firm = []
+            for x in i:
+                chance = random.uniform(0, 1)
+                if chance > mutation_probability:
+                    temp_firm.append(x)
+                elif chance < mutation_probability and x == 0:
+                    x = 1
+                    temp_firm.append(x)
+                # print("Mutation occured!")
+                elif chance < mutation_probability and x == 1:
+                    x = 0
+                    temp_firm.append(x)
+                # print("Mutation occured!")
+            mutated_firms.append(temp_firm)
+        save_point.firm_pre_election = mutated_firms
+        return None
+
+    def crossover(probability, strings):
+        offspring = []
+        for i in range(len(save_point.firm)):
+            chance = random.uniform(0, 1)
+            if chance < probability:
+                X_chromosome = save_point.firm[i][:int(strings / 2)]
+                Y_chromosome = save_point.firm[i][int(strings / 2):]
+                K = random.randint(0, strings / 2)
+                U = X_chromosome[K:] + Y_chromosome[:K]
+                V = Y_chromosome[K:] + X_chromosome[:K]
+                Z = U + V
+                offspring.append(Z)
+            else:
+                offspring.append(save_point.firm[i])
+        save_point.firm_after_crossover = offspring
+        return None
+
+    def election():
+        t_pop = []
+        m=0
+        for i, j in zip(save_point.fitness_firm, save_point.fitness_firm_pre_election):
+            f_pop = []
+            k = 0
+            for p,q in zip(i,j):
+                if p > q:
+                    f_pop.append(save_point.firm[m][k])
+                    k += 1
+                elif p == q:
+                    f_pop.append(save_point.firm[m][k])
+                    k += 1
+                else:
+                    f_pop.append(save_point.firm_pre_election[m][k])
+                    k += 1
+            m+=1
+            t_pop.append(f_pop)
+        save_point.firm = t_pop
+        return None
+
+    def fitness_pre(pool):
+        save_point.fitness_firm = []
+        m = 0
+        for i in schedule.individual_price_observations:
+            k = 0
+            temp_list = []
+            for j in i:
+                fit = (1300 - 260 * (schedule.individual_price_observations[m][k] - schedule.price_star()) ** 2)
+                if fit > 0:
+                    temp_list.append(fit)
+                    k+=1
+                elif fit < 0:
+                    temp_list.append(0)
+                    k += 1
+                else:
+                    temp_list.append(0)
+                    k += 1
+            save_point.fitness_firm.append(temp_list)
+            m+=1
+        total_list = []
+        for i in save_point.fitness_firm:
+            total = 0
+            for j in i:
+                total += j
+            total_list.append(total)
+
+        save_point.roulette = []
+        try:
+            q=0
+            for i in save_point.fitness_firm:
+                roulette_temp = []
+                for j in i:
+                    percentage = j / total_list[q]
+                    roulette_temp.append(percentage)
+                q+=1
+                save_point.roulette.append(roulette_temp)
+        except ZeroDivisionError:
+            print("Zero Division Error occured during fitness, fitness passed")
+        return None
+
+    def fitness_post(pool):
+        save_point.fitness_firm_pre_election = []
+        m = 0
+        for i in schedule.individual_price_observations:
+            k = 0
+            temp_list = []
+            for j in i:
+                fit = (1300 - 260 * (schedule.individual_price_observations[m][k] - schedule.price_star()) ** 2)
+                if fit > 0:
+                    temp_list.append(fit)
+                    k+=1
+                elif fit < 0:
+                    temp_list.append(0)
+                    k += 1
+                else:
+                    temp_list.append(0)
+                    k += 1
+            save_point.fitness_firm_pre_election.append(temp_list)
+            m+=1
+        return None
+
+    def reproduction():
+        new_firm = []
+        k = 0
+        for i in save_point.roulette:
+            temp_firm = []
+            for j in i:
+                x = np.array(i)
+                selection = np.random.choice(range(x.size), p=i)
+                temp_firm.append(save_point.firm[k][selection])
+            new_firm.append(temp_firm)
+            k+=1
+        save_point.firm = new_firm
+        return None
+
+class bitcode:
+    price_starA = []
+    price_starB = []
+    price_permA = []
+    price_permB = []
+    simulation_plot_time = []
+    simulation_plot_price = []
+
+    def generate_bitcode():
+        bitcode.price_starA = []
+        for i in save_point.firm:
+            sum_output = []
+            for k in i:
+                alphai = 10 * sum(([k* 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
+                sum_output.append(alphai)
+            bitcode.price_starA.append(sum_output)
+            bitcode.price_permA.append(sum_output)
+        return bitcode.price_starA
+
+    def generate_bitcode2():
+        bitcode.price_starB = []
+        for i in save_point.firm:
+            sum_output = []
+            for k in i:
+                betai = -1 + 2 * sum(([k * 2 ** (j-21) / ((2 ** 20)-1) for j in range(21, int(world.genes))]))
+                sum_output.append(betai)
+            bitcode.price_starB.append(sum_output)
+            bitcode.price_permB.append(sum_output)
+        return bitcode.price_starB
+
+
+class schedule:
+    def demand():
+        try:
+            demand = world.a - world.d * (schedule.price()) + world.demand_shock()
+        except:
+            demand = world.a - world.d * (schedule.price0()) + world.demand_shock()
+        return demand
+
+    def supply():
+        try:
+            supply_schedule = np.tanh(world.λ * (schedule.price_eit() - 6)) + 1
+        except:
+            supply_schedule = np.tanh(world.λ * (schedule.price0() - 6)) + 1
+        return supply_schedule
+
+    def price():
+        price = (world.a - (1 / world.pool) * schedule.supply()) / world.d + world.epsilon()
+        return price
+
+    def price0():
+        return 8
+
+    def price_star():
+        price_star = (world.a - (1 / world.pool) * schedule.supply()) / world.d
+        return price_star
+
+
+    individual_price_observations = []
+
+    def price_eit_indy():
+        schedule.individual_price_observations = []
+        m = 0
+        for i, j in zip(bitcode.price_starA, bitcode.price_starB):
+            k = 0
+            temp_list = []
+            for p,q in zip(i,j):
+                price_eit_indy = bitcode.price_starA[m][k] + bitcode.price_starB[m][k] * (schedule.price() - bitcode.price_starA[m][k])
+                temp_list.append(price_eit_indy)
+                k += 1
+            m+=1
+            schedule.individual_price_observations.append(temp_list)
+        return schedule.individual_price_observations
+
+
+    def draw_plot():
+        plt.plot(bitcode.simulation_plot_time, bitcode.simulation_plot_price)
+        plt.title("Time Series Results", fontsize=20)
+        plt.xlabel("Generations")
+        plt.ylabel("Price")
+        plt.show()
+
+def simulation(period):
+    main.firm_gen(world.pool, 40)
+    bitcode.generate_bitcode()
+    bitcode.generate_bitcode2()
+    print("Initial Firms:",*save_point.firm, sep = "\n")
+
+    for i in range(period):
+        bitcode.generate_bitcode()
+        bitcode.generate_bitcode2()
+        schedule.price_eit_indy()
+        main.fitness_pre(world.pool)
+        main.reproduction()
+        main.crossover(0.6, world.genes)
+        main.mutation(0.01)
+        main.fitness_post(world.pool)
+        main.election()
+        bitcode.simulation_plot_time.append(i)
+        bitcode.simulation_plot_price.append(round(schedule.price(),2))
+        if i % 2 ==0:
+            print(i, round(schedule.price(),2))
+
+#summary
+    print("Ending Firms:",*save_point.firm, sep="\n")
+    print(round(schedule.price(),2))
+    schedule.draw_plot()
+    print("Mean of prices: \n", round(sum(bitcode.simulation_plot_price)/len(bitcode.simulation_plot_price),2))
+#   print("Mean of α: \n", round(sum(bitcode.price_permA)/len(bitcode.price_permA),2))
+#   print("Mean of β: \n", round(sum(bitcode.price_permB)/len(bitcode.price_permB),2))
+
+    return "Simulation finished"
