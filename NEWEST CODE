@@ -13,7 +13,8 @@ class world:
 
     pool = 6;
     genes = 40;
-    λ = 1;
+    λ = 0.6;
+    M = 10;
     a = 2.3;
     d = 0.25
 
@@ -25,6 +26,7 @@ class save_point:
     fitness_firm = []
     fitness_firm_pre_election = []
     roulette = []
+    supply_schedule = []
 
 
 class main:
@@ -34,66 +36,78 @@ class main:
             strings.append(random.randint(0, 1))
         return strings
 
-    def firm_gen(pool, genes):
-        while len(save_point.firm) < pool:
-            firms = main.string(genes)
-            save_point.firm.append(firms)
+    def firm_gen(pool, M, genes):
+        for i in range(pool):
+            temp_firms = []
+            while len(temp_firms) < M:
+                firms = main.string(genes)
+                temp_firms.append(firms)
+            save_point.firm.append(temp_firms)
         return save_point.firm
+
 
     def mutation(mutation_probability):
         mutated_firms = []
         for i in save_point.firm_after_crossover:
-            temp_firm = []
+            new_firms = []
             for x in i:
-                chance = random.uniform(0, 1)
-                if chance > mutation_probability:
-                    temp_firm.append(x)
-                elif chance < mutation_probability and x == 0:
-                    x = 1
-                    temp_firm.append(x)
-                # print("Mutation occured!")
-                elif chance < mutation_probability and x == 1:
-                    x = 0
-                    temp_firm.append(x)
-                # print("Mutation occured!")
-            mutated_firms.append(temp_firm)
+                temp_firm = []
+                for y in x:
+                    chance = random.uniform(0, 1)
+                    if chance > mutation_probability:
+                        temp_firm.append(x)
+                    elif chance < mutation_probability and x == 0:
+                        x = 1
+                        temp_firm.append(x)
+                    elif chance < mutation_probability and x == 1:
+                        x = 0
+                        temp_firm.append(x)
+                new_firms.append(temp_firm)
+            mutated_firms.append(new_firms)
         save_point.firm_pre_election = mutated_firms
         return None
 
     def crossover(probability, strings):
         offspring = []
         for i in range(len(save_point.firm)):
-            chance = random.uniform(0, 1)
-            if chance < probability:
-                X_chromosome = save_point.firm[i][:int(strings / 2)]
-                Y_chromosome = save_point.firm[i][int(strings / 2):]
-                K = random.randint(0, strings / 2)
-                U = X_chromosome[K:] + Y_chromosome[:K]
-                V = Y_chromosome[K:] + X_chromosome[:K]
-                Z = U + V
-                offspring.append(Z)
-            else:
-                offspring.append(save_point.firm[i])
+            temp_offspring = []
+            for x in range(len(save_point.firm[i]):
+                chance = random.uniform(0, 1)
+                if chance < probability:
+                    X_chromosome = save_point.firm[i][x][:int(strings / 2)]
+                    Y_chromosome = save_point.firm[i][x][int(strings / 2):]
+                    K = random.randint(0, strings / 2)
+                    U = X_chromosome[K:] + Y_chromosome[:K]
+                    V = Y_chromosome[K:] + X_chromosome[:K]
+                    Z = U + V
+                    temp_offspring.append(Z)
+                else:
+                    temp_offspring.append(save_point.firm[i])
+            offspring.append(temp_offspring)
         save_point.firm_after_crossover = offspring
         return None
 
     def election():
         t_pop = []
-        m=0
+        l=0
         for i, j in zip(save_point.fitness_firm, save_point.fitness_firm_pre_election):
             f_pop = []
-            k = 0
-            for p,q in zip(i,j):
-                if p > q:
-                    f_pop.append(save_point.firm[m][k])
-                    k += 1
-                elif p == q:
-                    f_pop.append(save_point.firm[m][k])
-                    k += 1
-                else:
-                    f_pop.append(save_point.firm_pre_election[m][k])
-                    k += 1
-            m+=1
+            m = 0
+            for y,z in zip(i,j):
+                n = 0
+                x_pop = []
+                for p,q in zip(y,z):
+                    if p > q:
+                        x_pop.append(save_point.firm[l][m][n])
+                        n += 1
+                    elif p == q:
+                        x_pop.append(save_point.firm[l][m][n])
+                        n += 1
+                    else:
+                        x_pop.append(save_point.firm_pre_election[l][m][n])
+                        n += 1
+                f_pop.append(x_pop)
+                m+=1
             t_pop.append(f_pop)
         save_point.firm = t_pop
         return None
@@ -123,7 +137,6 @@ class main:
             for j in i:
                 total += j
             total_list.append(total)
-
         save_point.roulette = []
         try:
             q=0
@@ -137,6 +150,7 @@ class main:
         except ZeroDivisionError:
             print("Zero Division Error occured during fitness, fitness passed")
         return None
+#needs to be updated for multiple population
 
     def fitness_post(pool):
         save_point.fitness_firm_pre_election = []
@@ -158,18 +172,21 @@ class main:
             save_point.fitness_firm_pre_election.append(temp_list)
             m+=1
         return None
+#needs to be updated for multiple population
 
     def reproduction():
         new_firm = []
-        k = 0
+        n = 0
         for i in save_point.roulette:
-            temp_firm = []
+            holder_firm = []
+            m = 0
             for j in i:
-                x = np.array(i)
-                selection = np.random.choice(range(x.size), p=i)
-                temp_firm.append(save_point.firm[k][selection])
-            new_firm.append(temp_firm)
-            k+=1
+                x = np.array(j)
+                selection = np.random.choice(range(x.size), p=j)
+                holder_firm.append(save_point.firm[n][m][selection])
+                m+=1
+            new_firm.append(holder_firm)
+            n+=1
         save_point.firm = new_firm
         return None
 
@@ -186,13 +203,19 @@ class bitcode:
         for i in save_point.firm:
             sum_output = []
             for k in i:
-                alphai = 10 * sum(([k* 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
+                alphai = sum(([k* 2 ** (j - 1) / ((2 ** 20) - 1) for j in range(1, int(world.genes / 2))]))
                 sum_output.append(alphai)
-            bitcode.price_starA.append(sum_output)
-            bitcode.price_permA.append(sum_output)
+            normalized = []
+            for k in sum_output:
+                norm_output = (k*10)/max(sum_output)
+                normalized.append(norm_output)
+            bitcode.price_starA.append(normalized)
+            bitcode.price_permA.append(normalized)
         return bitcode.price_starA
+#INCEPTION
 
     def generate_bitcode2():
+
         bitcode.price_starB = []
         for i in save_point.firm:
             sum_output = []
@@ -203,33 +226,34 @@ class bitcode:
             bitcode.price_permB.append(sum_output)
         return bitcode.price_starB
 
+#INCEPTION
 
 class schedule:
-    def demand():
-        try:
-            demand = world.a - world.d * (schedule.price()) + world.demand_shock()
-        except:
-            demand = world.a - world.d * (schedule.price0()) + world.demand_shock()
-        return demand
 
     def supply():
-        try:
-            supply_schedule = np.tanh(world.λ * (schedule.price_eit() - 6)) + 1
-        except:
-            supply_schedule = np.tanh(world.λ * (schedule.price0() - 6)) + 1
+        save_point.supply_schedule = []
+        prices = []
+        k = 0
+        for i in save_point.roulette:
+            x = np.array(i)
+            selection = np.random.choice(range(x.size), p=i)
+            prices.append(schedule.individual_price_observations[k][selection])
+            k += 1
+        supply_schedule = []
+        for i in prices:
+            supply_sched = np.tanh(world.λ * (prices[i] - 6)) + 1
+            supply_schedule.append(supply_sched)
+        save_point.supply_schedule = supply_schedule
+
         return supply_schedule
+#selection needs to be updated for multiple pop, one firms list
 
     def price():
-        price = (world.a - (1 / world.pool) * schedule.supply()) / world.d + world.epsilon()
+        try:
+            price = (world.a - (1 / world.pool) * sum(save_point.supply_schedule) / world.d + world.epsilon())
+        except IndexError:
+            price = 5.6
         return price
-
-    def price0():
-        return 8
-
-    def price_star():
-        price_star = (world.a - (1 / world.pool) * schedule.supply()) / world.d
-        return price_star
-
 
     individual_price_observations = []
 
@@ -247,6 +271,8 @@ class schedule:
             schedule.individual_price_observations.append(temp_list)
         return schedule.individual_price_observations
 
+#needs to be updated for multiple population AND price needs to be price t-1, collect from the list of saved prices used to graph
+
 
     def draw_plot():
         plt.plot(bitcode.simulation_plot_time, bitcode.simulation_plot_price)
@@ -256,11 +282,12 @@ class schedule:
         plt.show()
 
 def simulation(period):
-    main.firm_gen(world.pool, 40)
+    main.firm_gen(world.pool, world.M, 40)
     bitcode.generate_bitcode()
     bitcode.generate_bitcode2()
+    schedule.supply()
     print("Initial Firms:",*save_point.firm, sep = "\n")
-
+#reset all lists upon first run
     for i in range(period):
         bitcode.generate_bitcode()
         bitcode.generate_bitcode2()
